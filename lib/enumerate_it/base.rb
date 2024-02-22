@@ -92,7 +92,11 @@ module EnumerateIt
         return value unless value.is_a? Symbol
 
         default = value.to_s.tr('_', ' ').split.map(&:capitalize).join(' ')
-        I18n.t("enumerations.#{name.underscore}.#{value.to_s.underscore}", default: default)
+        I18n.t(i18n_key_for(value), default: default)
+      end
+
+      def i18n_key_for(value)
+        "enumerations.#{name.underscore}.#{value.to_s.underscore}"
       end
 
       private
