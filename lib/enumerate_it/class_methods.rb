@@ -2,12 +2,13 @@ module EnumerateIt
   module ClassMethods
     def has_enumeration_for(attribute, options = {})
       self.enumerations = enumerations.dup
+      column_name = options.fetch(:column_name, attribute)
 
       define_enumeration_class(attribute, options)
-      create_enumeration_humanize_method(options[:with], attribute)
+      create_enumeration_humanize_method(options[:with], column_name)
       store_enumeration(options[:with], attribute)
 
-      handle_options(attribute, options)
+      handle_options(column_name, options)
     end
 
     private

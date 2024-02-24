@@ -1,8 +1,8 @@
 require 'forwardable'
 
 module EnumerateIt
-  class Base
-    class << self
+  class Base # rubocop:disable Metrics/ClassLength
+    class << self # rubocop:disable Metrics/ClassLength
       extend Forwardable
 
       attr_reader :sort_mode
@@ -19,6 +19,12 @@ module EnumerateIt
         end
       end
 
+      def associate_archived_values(*args)
+        values = values_hash(args)
+
+        register_archived_enumeration(normalize_enumeration(values))
+      end
+
       def sort_by(sort_mode)
         @sort_mode = sort_mode
       end
@@ -33,6 +39,10 @@ module EnumerateIt
 
       def enumeration
         @registered_enumerations[self]
+      end
+
+      def archived_enumeration
+        @registered_archived_enumerations[self]
       end
 
       def to_a
@@ -122,8 +132,28 @@ module EnumerateIt
       end
 
       def register_enumeration(values_hash)
+        raise "There is already an archived enumeration for #{values_hash}" if @registered_archived_enumerations &&
+                                                                               values_intersection?(
+                                                                                 values_hash, archived_enumeration
+                                                                               )
+
         @registered_enumerations ||= {}
         @registered_enumerations[self] = values_hash
+      end
+
+      def register_archived_enumeration(values_hash)
+        raise "There is already an enumeration for #{values_hash}" if @registered_enumerations &&
+                                                                      values_intersection?(
+                                                                        values_hash, enumeration
+                                                                      )
+
+        @registered_archived_enumerations ||= {}
+        @registered_archived_enumerations[self] = values_hash
+      end
+
+      def values_intersection?(vx, vy)
+        vx.values.map(&:first).intersect?(vy.values.map(&:first)) ||
+          vx.values.map(&:last).intersect?(vy.values.map(&:last))
       end
 
       def define_enumeration_constant(name, value)
