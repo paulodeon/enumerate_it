@@ -5,7 +5,7 @@ module EnumerateIt
       column_name = options.fetch(:column_name, attribute)
 
       define_enumeration_class(attribute, options)
-      create_enumeration_humanize_method(options[:with], column_name)
+      create_enumeration_humanize_method(options[:with], attribute, column_name)
       store_enumeration(options[:with], attribute)
 
       handle_options(column_name, options)
@@ -29,10 +29,10 @@ module EnumerateIt
       enumerations[attribute] = klass
     end
 
-    def create_enumeration_humanize_method(klass, attribute_name)
+    def create_enumeration_humanize_method(klass, attribute_name, column_name)
       class_eval do
         define_method "#{attribute_name}_humanize" do
-          values = klass.enumeration.values.detect { |v| v[0] == send(attribute_name) }
+          values = klass.enumeration.values.detect { |v| v[0] == send(column_name) }
 
           values ? klass.translate(values[1]) : nil
         end
