@@ -2,18 +2,24 @@ module EnumerateIt
   module ClassMethods
     def has_enumeration_for(attribute, options = {})
       self.enumerations = enumerations.dup
+
       column_name = options.fetch(:column_name, attribute)
 
       define_enumeration_class(attribute, options)
       create_enumeration_humanize_method(options[:with], attribute, column_name)
       store_enumeration(options[:with], attribute)
 
-      handle_options(column_name, options)
+      handle_options(attribute, options)
     end
 
     private
 
-    def handle_options(attribute, options)
+    def handle_options(attribute, options) # rubocop:disable Metrics/MethodLength
+      if (column_name = options.fetch(:column_name, attribute))
+        create_accessor_methods_for_column_alias(attribute, column_name)
+        attribute = column_name
+      end
+
       set_validations(attribute, options) unless options[:skip_validation]
 
       if options[:create_helpers]
@@ -23,6 +29,14 @@ module EnumerateIt
       end
 
       create_scopes options[:with], attribute, options[:create_scopes] if options[:create_scopes]
+    end
+
+    def create_accessor_methods_for_column_alias(attribute, column_name)
+      class_eval do
+        define_method "#{attribute}=" do |value|
+          send("#{column_name}=", value)
+        end
+      end
     end
 
     def store_enumeration(klass, attribute)
