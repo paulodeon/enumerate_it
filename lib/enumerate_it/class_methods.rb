@@ -1,5 +1,5 @@
 module EnumerateIt
-  module ClassMethods
+  module ClassMethods # rubocop:disable Metrics/ModuleLength
     def has_enumeration_for(attribute, options = {})
       self.enumerations = enumerations.dup
 
@@ -32,7 +32,13 @@ module EnumerateIt
     end
 
     def create_accessor_methods_for_column_alias(attribute, column_name)
+      return if attribute == column_name
+
       class_eval do
+        define_method attribute do
+          send(column_name)
+        end
+
         define_method "#{attribute}=" do |value|
           send("#{column_name}=", value)
         end
